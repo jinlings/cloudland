@@ -1,6 +1,7 @@
 # -*- mode: sh -*-
 localrc="${BASH_SOURCE[0]}.local"
 source "$localrc"
+guest_userid_template=ZCC%05X
 run_dir=/opt/cloudland/run
 cache_dir=/opt/cloudland/cache
 cache_tmp_dir=$cache_dir/tmp
@@ -15,6 +16,7 @@ dmasq_dir=/opt/cloudland/cache/dnsmasq
 mudata_dir=/opt/cloudland/mudata
 snapshot_dir=/var/snapshot
 deploy_dir=/opt/cloudland/deploy
+vxlan_db=/opt/cloudland/db/cloudland.db
 cland_private_key=$deploy_dir/.ssh/cland.key
 export JAEGER_SERVICE_NAME="SCI-Backend"
 span=$(basename $0 .sh)
@@ -70,6 +72,14 @@ function apply_vnic()
     service iptables save
 }
 
+function apply_bridge()
+{
+    action=$1
+    mybr=$2
+    apply_fw $action FORWARD -i $mybr -o $mybr -j ACCEPT
+    service iptables save
+}
+
 function sidecar()
 {
     [ -x /usr/local/bin/sidecar ] && /usr/local/bin/sidecar $@
@@ -112,6 +122,11 @@ function action_target()
     [ -n "$node" ] && hyper_node=$(cat hosts/hosts | grep client_id=$node | awk '{print $1}')
     ssh -i $cland_private_key -o StrictHostKeyChecking=no cland@$hyper_node "$command"
     cd -
+}
+
+function sql_exec()
+{
+    sqlite3 $vxlan_db "$*"
 }
 
 if [ "$span" != "report_rc" ]; then

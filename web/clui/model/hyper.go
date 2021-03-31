@@ -32,7 +32,11 @@ type Hyper struct {
 	Parentid  int32
 	Children  int32
 	Duration  int64
-	Resource  *Resource `gorm:"foreignkey:Hostid;AssociationForeignKey:Hostid`
+	HostIP    string
+	VirtType  string
+	ZoneID    int64
+	Zone      *Zone     `gorm:"foreignkey:ZoneID"`
+	Resource  *Resource `gorm:"foreignkey:Hostid;AssociationForeignKey:Hostid"`
 }
 
 func init() {

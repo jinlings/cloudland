@@ -199,6 +199,9 @@ func setRouting(ctx context.Context, gatewayID int64, subnet *model.Subnet, rout
 		return
 	}
 	control := fmt.Sprintf("toall=router-%d:%d,%d", gateway.ID, gateway.Hyper, gateway.Peer)
+	if gateway.Hyper == gateway.Peer {
+		control = fmt.Sprintf("inter=%d", gateway.Hyper)
+	}
 	if routeOnly {
 		command := fmt.Sprintf("/opt/cloudland/scripts/backend/set_route.sh '%d' '%d' '%s'<<EOF\n%s\nEOF", gateway.ID, subnet.Vlan, subnet.Type, subnet.Routes)
 		err = hyperExecute(ctx, control, command)
@@ -213,7 +216,7 @@ func setRouting(ctx context.Context, gatewayID int64, subnet *model.Subnet, rout
 	return
 }
 
-func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, gateway, start, end, rtype, dns, domain, dhcp string, routes string, cluster, owner int64) (subnet *model.Subnet, err error) {
+func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, zones, gateway, start, end, rtype, dns, domain, dhcp, vSwitch string, routes string, owner int64) (subnet *model.Subnet, err error) {
 	memberShip := GetMemberShip(ctx)
 	if owner == 0 {
 		owner = memberShip.OrgID
@@ -271,6 +274,29 @@ func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, 
 		end = cidr.Dec(net.ParseIP(end)).String()
 	}
 	gateway = fmt.Sprintf("%s/%d", gateway, preSize)
+	zoneList := []*model.Zone{}
+	if zones != "" {
+		z := strings.Split(zones, ",")
+		for i := 0; i < len(z); i++ {
+			zID, err := strconv.Atoi(z[i])
+			if err != nil {
+				log.Println("Invalid secondary zone ID, %v", err)
+				continue
+			}
+			zone := &model.Zone{ID: int64(zID)}
+			err = db.Take(&zone).Error
+			if err != nil {
+				continue
+			}
+			zoneList = append(zoneList, zone)
+		}
+	} else {
+		err = db.Find(&zoneList).Error
+		if err != nil {
+			log.Println("Failed to query zones, %v", err)
+			return
+		}
+	}
 	subnet = &model.Subnet{
 		Model:        model.Model{Creater: memberShip.UserID, Owner: owner},
 		Name:         name,
@@ -282,10 +308,11 @@ func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, 
 		NameServer:   dns,
 		DomainSearch: domain,
 		Dhcp:         dhcp,
-		ClusterID:    cluster,
 		Vlan:         int64(vlanNo),
 		Type:         rtype,
 		Routes:       routes,
+		Zones:        zoneList,
+		VSwitch:      vSwitch,
 	}
 	err = db.Create(subnet).Error
 	if err != nil {
@@ -308,6 +335,12 @@ func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, 
 			ip = cidr.Inc(ip)
 		}
 	}
+	// Create record for gateway
+	address := &model.Address{Model: model.Model{Creater: memberShip.UserID, Owner: owner}, Address: gateway, Netmask: netmask, Type: "ipv4", SubnetID: subnet.ID}
+	err = db.Create(address).Error
+	if err != nil {
+		log.Println("Database create address for gateway failed, %v", err)
+	}
 	netlink := &model.Network{Vlan: int64(vlanNo)}
 	if vlanNo < 4096 {
 		netlink.Type = "vlan"
@@ -327,23 +360,25 @@ func (a *SubnetAdmin) Create(ctx context.Context, name, vlan, network, netmask, 
 			return
 		}
 	}
-	_ = execNetwork(ctx, netlink, subnet, owner)
+	for _, z := range zoneList {
+		_ = execNetwork(ctx, netlink, subnet, owner, z.ID)
+	}
 	return
 }
 
-func execNetwork(ctx context.Context, netlink *model.Network, subnet *model.Subnet, owner int64) (err error) {
+func execNetwork(ctx context.Context, netlink *model.Network, subnet *model.Subnet, owner, zoneID int64) (err error) {
 	if subnet.Dhcp == "no" {
 		return
 	}
 	if netlink.Hyper < 0 {
 		var dhcp1 *model.Interface
-		dhcp1, err = CreateInterface(ctx, subnet.ID, netlink.ID, owner, -1, "", "", "dhcp-1", "dhcp", nil)
+		dhcp1, err = CreateInterface(ctx, subnet.ID, netlink.ID, owner, zoneID, -1, "", "", "dhcp-1", "dhcp", nil)
 		if err != nil {
 			log.Println("Failed to allocate dhcp first address", err)
 			return
 		}
 		control := fmt.Sprintf("inter=")
-		command := fmt.Sprintf("/opt/cloudland/scripts/backend/create_net.sh '%d' '%s' '%s' '%s' '%s' '%d' 'FIRST' '%s' '%s'", netlink.Vlan, subnet.Network, subnet.Netmask, subnet.Gateway, dhcp1.Address.Address, subnet.ID, subnet.NameServer, subnet.DomainSearch)
+		command := fmt.Sprintf("/opt/cloudland/scripts/backend/create_net.sh '%d' '%s' '%s' '%s' '%s' '%d' 'FIRST' '%s' '%s' '%s'", netlink.Vlan, subnet.Network, subnet.Netmask, subnet.Gateway, dhcp1.Address.Address, subnet.ID, subnet.NameServer, subnet.DomainSearch, dhcp1.MacAddr)
 		err = hyperExecute(ctx, control, command)
 		if err != nil {
 			log.Println("Failed to create first dhcp", err)
@@ -352,13 +387,13 @@ func execNetwork(ctx context.Context, netlink *model.Network, subnet *model.Subn
 	}
 	if netlink.Peer < 0 {
 		var dhcp2 *model.Interface
-		dhcp2, err = CreateInterface(ctx, subnet.ID, netlink.ID, owner, -1, "", "", "dhcp-2", "dhcp", nil)
+		dhcp2, err = CreateInterface(ctx, subnet.ID, netlink.ID, owner, zoneID, -1, "", "", "dhcp-2", "dhcp", nil)
 		if err != nil {
 			log.Println("Failed to allocate dhcp first address", err)
 			return
 		}
 		control := fmt.Sprintf("inter=")
-		command := fmt.Sprintf("/opt/cloudland/scripts/backend/create_net.sh '%d' '%s' '%s' '%s' '%s' '%d' 'SECOND' '%s' '%s'", netlink.Vlan, subnet.Network, subnet.Netmask, subnet.Gateway, dhcp2.Address.Address, subnet.ID, subnet.NameServer, subnet.DomainSearch)
+		command := fmt.Sprintf("/opt/cloudland/scripts/backend/create_net.sh '%d' '%s' '%s' '%s' '%s' '%d' 'SECOND' '%s' '%s' '%s'", netlink.Vlan, subnet.Network, subnet.Netmask, subnet.Gateway, dhcp2.Address.Address, subnet.ID, subnet.NameServer, subnet.DomainSearch, dhcp2.MacAddr)
 		err = hyperExecute(ctx, control, command)
 		if err != nil {
 			log.Println("Failed to create second dhcp", err)
@@ -426,9 +461,9 @@ func (a *SubnetAdmin) Delete(ctx context.Context, id int64) (err error) {
 		}
 		control := ""
 		if netlink.Hyper >= 0 {
-			control = fmt.Sprintf("toall=vlan-%d:%d", subnet.Vlan, netlink.Hyper)
-			if netlink.Peer >= 0 {
-				control = fmt.Sprintf("%s,%d", control, netlink.Peer)
+			control = fmt.Sprintf("inter=%d", netlink.Hyper)
+			if netlink.Peer >= 0 && netlink.Hyper != netlink.Peer {
+				control = fmt.Sprintf("toall=vlan-%d:%d,%d", subnet.Vlan, netlink.Hyper, netlink.Peer)
 			}
 		} else if netlink.Peer >= 0 {
 			control = fmt.Sprintf("inter=%d", netlink.Peer)
@@ -467,14 +502,14 @@ func (a *SubnetAdmin) List(ctx context.Context, offset, limit int64, order, quer
 	where := ""
 	wm := memberShip.GetWhere()
 	if wm != "" {
-		where = fmt.Sprintf("type != 'internal' or %s", wm)
+		where = fmt.Sprintf("type = 'public' or %s", wm)
 	}
 	subnets = []*model.Subnet{}
 	if err = db.Model(&model.Subnet{}).Where(where).Where(query).Where(sql).Count(&total).Error; err != nil {
 		return
 	}
 	db = dbs.Sortby(db.Offset(offset).Limit(limit), order)
-	if err = db.Preload("Netlink").Where(where).Where(query).Where(sql).Find(&subnets).Error; err != nil {
+	if err = db.Preload("Netlink").Preload("Zones").Where(where).Where(query).Where(sql).Find(&subnets).Error; err != nil {
 		return
 	}
 	permit := memberShip.CheckPermission(model.Admin)
@@ -528,6 +563,7 @@ func (v *SubnetView) List(c *macaron.Context, store session.Store) {
 	c.Data["Total"] = total
 	c.Data["Pages"] = pages
 	c.Data["Query"] = query
+	c.Data["UserID"] = store.Get("uid").(int64)
 	if c.Req.Header.Get("X-Json-Format") == "yes" {
 		c.JSON(200, map[string]interface{}{
 			"subnets": subnets,
@@ -545,26 +581,26 @@ func (v *SubnetView) Delete(c *macaron.Context, store session.Store) (err error)
 	id := c.Params("id")
 	if id == "" {
 		c.Data["ErrorMsg"] = "Id is Empty"
-		c.HTML(http.StatusBadRequest, "error")
+		c.Error(http.StatusBadRequest)
 		return
 	}
 	subnetID, err := strconv.Atoi(id)
 	if err != nil {
 		c.Data["ErrorMsg"] = err.Error()
-		c.HTML(http.StatusBadRequest, "error")
+		c.Error(http.StatusBadRequest)
 		return
 	}
 	permit, err := memberShip.CheckOwner(model.Writer, "subnets", int64(subnetID))
 	if !permit {
 		log.Println("Not authorized for this operation")
 		c.Data["ErrorMsg"] = "Not authorized for this operation"
-		c.HTML(http.StatusBadRequest, "error")
+		c.Error(http.StatusBadRequest)
 		return
 	}
 	err = subnetAdmin.Delete(c.Req.Context(), int64(subnetID))
 	if err != nil {
 		c.Data["ErrorMsg"] = err.Error()
-		c.HTML(http.StatusBadRequest, "error")
+		c.Error(http.StatusBadRequest)
 		return
 	}
 	c.JSON(200, map[string]interface{}{
@@ -582,6 +618,13 @@ func (v *SubnetView) New(c *macaron.Context, store session.Store) {
 		c.HTML(http.StatusBadRequest, "error")
 		return
 	}
+	zones := []*model.Zone{}
+	err := DB().Find(&zones).Error
+	if err != nil {
+		log.Println("Database failed to query zones", err)
+		return
+	}
+	c.Data["Zones"] = zones
 	c.HTML(200, "subnets_new")
 }
 
@@ -780,6 +823,7 @@ func (v *SubnetView) Create(c *macaron.Context, store session.Store) {
 	rtype := c.QueryTrim("rtype")
 	network := c.QueryTrim("network")
 	netmask := c.QueryTrim("netmask")
+	zones := c.QueryTrim("zones")
 	gateway := c.QueryTrim("gateway")
 	routes := c.QueryTrim("routes")
 	start := c.QueryTrim("start")
@@ -787,6 +831,7 @@ func (v *SubnetView) Create(c *macaron.Context, store session.Store) {
 	dns := c.QueryTrim("dns")
 	domain := c.QueryTrim("domain")
 	dhcp := c.QueryTrim("dhcp")
+	vSwitch := c.QueryTrim("vSwitch")
 	if dhcp != "no" {
 		dhcp = "yes"
 	}
@@ -796,7 +841,7 @@ func (v *SubnetView) Create(c *macaron.Context, store session.Store) {
 		c.HTML(http.StatusBadRequest, "error")
 		return
 	}
-	subnet, err := subnetAdmin.Create(c.Req.Context(), name, vlan, network, netmask, gateway, start, end, rtype, dns, domain, dhcp, routeJson, 0, memberShip.OrgID)
+	subnet, err := subnetAdmin.Create(c.Req.Context(), name, vlan, network, netmask, zones, gateway, start, end, rtype, dns, domain, dhcp, vSwitch, routeJson, memberShip.OrgID)
 	if err != nil {
 		log.Println("Create subnet failed, %v", err)
 		if c.Req.Header.Get("X-Json-Format") == "yes" {

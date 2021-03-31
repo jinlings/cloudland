@@ -135,6 +135,12 @@ func New() (m *macaron.Macaron) {
 	m.Get("/flavors/new", flavorView.New)
 	m.Post("/flavors/new", flavorView.Create)
 	m.Delete("/flavors/:id", flavorView.Delete)
+	m.Get("/registrys", registryView.List)
+	m.Get("/registrys/new", registryView.New)
+	m.Post("/registrys/new", registryView.Create)
+	m.Delete("/registrys/:id", registryView.Delete)
+	m.Get("/registrys/:id", registryView.Edit)
+	m.Post("/registrys/:id", registryView.Patch)
 	m.Get("/images", imageView.List)
 	m.Get("/images/new", imageView.New)
 	m.Post("/images/new", imageView.Create)
@@ -181,6 +187,8 @@ func New() (m *macaron.Macaron) {
 	m.Get("/secgroups/:sgid/secrules/new", secruleView.New)
 	m.Post("/secgroups/:sgid/secrules/new", secruleView.Create)
 	m.Delete("/secgroups/:sgid/secrules/:id", secruleView.Delete)
+	m.Get("/secgroups/:sgid/secrules/:id", secruleView.Edit)
+	m.Post("/secgroups/:sgid/secrules/:id", secruleView.Patch)
 	m.Get("/error", func(c *macaron.Context) {
 		c.Data["ErrorMsg"] = c.QueryTrim("ErrorMsg")
 		c.HTML(500, "error")
@@ -216,7 +224,7 @@ func LinkHandler(c *macaron.Context, store session.Store) {
 		c.Data["Organization"] = store.Get("org").(string)
 		c.Data["Members"] = store.Get("members").([]*model.Member)
 	} else if link != "" && link != "/" && !strings.HasPrefix(link, "/login") && !strings.HasPrefix(link, "/consoleresolver") {
-		UrlBefore=link
+		UrlBefore = link
 		c.Redirect("login?redirect_to=")
 	}
 }

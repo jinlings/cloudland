@@ -28,6 +28,7 @@
 			                        <th>{{.i18n.Tr "Name"}}</th>
 			                        <th>{{.i18n.Tr "Network"}}</th>
 			                        <th>{{.i18n.Tr "Netmask"}}</th>
+			                        <th>{{.i18n.Tr "Zones"}}</th>
 						{{ if $.IsAdmin }}
 			                        <th>{{.i18n.Tr "Vlan"}}</th>
 			                        <th>{{.i18n.Tr "Hyper"}}</th>
@@ -39,6 +40,7 @@
 	                        <tbody>
                                 {{ $Link := .Link }}
                                 {{ range .Subnets }}
+								{{ if or $.IsAdmin (eq $.UserID .Creater) }}
 		                        <tr>
 									{{ if $.IsAdmin }}
 			                        <td><a href="{{$Link}}/{{.ID}}">{{.ID}}</a></td>
@@ -46,7 +48,14 @@
 			                        <td><a href="{{$Link}}/{{.ID}}">{{.Name}}</a></td>
 			                        <td>{{.Network}}</td>
 			                        <td>{{.Netmask}}</td>
+						<td>
+						{{ if .Zones }}
+						{{ range .Zones }}
+			                        	{{.Name}} 
+						{{ end }}
+						{{ end }}
 						{{ if $.IsAdmin }}
+						</td>
 			                        <td>{{.Vlan}}</td>
 			                        <td>
 						{{ if .Netlink }}
@@ -57,7 +66,8 @@
 						{{ end }}
                                     <td><div class="delete-button" data-url="{{$Link}}/{{.ID}}" data-id="{{.ID}}"><i class="dark purple trash alternate outline icon"></i></div></td>
 		                        </tr>
-                                {{ end }}
+				{{ end }}
+				{{ end }}
 	                        </tbody>
                         </table>
 		            </div>
