@@ -1,6 +1,7 @@
 ## check pr##
 checkpr(){
-  whoami
+  VERSION=$1
+  RELEASE=$2 
   cd /opt
   sudo chown -R cland:cland cloudland/
   echo "PENDING" > ./cloudland/web/clui/public/test_status
@@ -94,7 +95,7 @@ pend(){
 # check status
 if [ ! -n "$1" ]||[ "$1" == "pull_request" ]
 then
-  checkpr
+  checkpr $2 $3
 elif [ "$1" == "test" ]
 then
   checktest $2
