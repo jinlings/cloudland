@@ -29,7 +29,7 @@ checkpr(){
   cd /opt/cloudland
   sudo ./build.sh
   echo "Build rpm Package"
-  sudo ./build_rpm.sh 1.1 1.0
+  sudo ./build_rpm.sh $VERSION $RELEASE
   echo "Deploy cloudland"
   cd /opt/cloudland/deploy/
   ./deploy.sh
