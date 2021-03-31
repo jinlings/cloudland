@@ -1,3 +1,4 @@
+## check pr##
 checkpr(){
   whoami
   cd /opt
