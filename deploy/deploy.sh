@@ -62,16 +62,12 @@ ip=$(echo $controller | jq -r .ip)
 cat > $hosts <<EOF
 [imgrepo]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [cland]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [web]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [database]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [hyper]
 EOF
 
@@ -80,15 +76,22 @@ db_passwd="passw0rd"
 new_conf="yes"
 
 if [ ! -e "/opt/cloudland/web/clui/conf/config.toml" ]; then
-    #read -s -p "Set the 'admin' login password: " admin_passwd
-    admin_passwd="passw0rd"
-    echo
-    #read -s -p "Set the database login password: " db_passwd
-    db_passwd="passw0rd"
-    echo
+       if [ $# -lt 1 ]; then
+            read -s -p "Set the 'admin' login password: " admin_passwd
+            admin_passwd="passw0rd"
+            echo
+            read -s -p "Set the database login password: " db_passwd
+            db_passwd="passw0rd"
+            echo
+       else
+            admin_passwd="passw0rd"
+            echo
+            db_passwd="passw0rd"
+            echo
+      fi
 else
-    new_conf="no"
-    db_passwd=$(grep 'user=postgres' /opt/cloudland/web/clui/conf/config.toml | awk '{print $6}' | awk -F '=' '{print $2}')
+        new_conf="no"
+        db_passwd=$(grep 'user=postgres' /opt/cloudland/web/clui/conf/config.toml | awk '{print $6}' | awk -F '=' '{print $2}')
 fi
 
 cd $cland_root_dir/deploy
