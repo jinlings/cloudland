@@ -1,6 +1,7 @@
+## check pr##
 checkpr(){
   VERSION=$1
-  RELEASE=$2
+  RELEASE=$2 
   cd /opt
   sudo chown -R cland:cland cloudland/
   echo "PENDING" > ./cloudland/web/clui/public/test_status

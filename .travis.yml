@@ -7,20 +7,9 @@ git:
 before_install:
 - ssh-keyscan $TEST_IP >> $HOME/.ssh/known_hosts
 install:
-- pwd
-- ls -alrt
-- ls -alrt ~/.ssh
-- cat ~/.ssh/known_hosts
-- cat ~/.ssh/authorized_keys
-- cat ~/.ssh/config
-- ls -alrt
-- openssl aes-256-cbc -K $encrypted_e6df4bfe5d89_key -iv $encrypted_e6df4bfe5d89_iv
-  -in skey.enc -out ~/.ssh/skey -d
-- ls -alrt ~/.ssh
-- chmod 600 ~/.ssh/skey
-- ls -lrt deploy
-- ls -lrt web/clui/public
-- cat autocheck.sh
+<<<<<<< HEAD
+- cd $TRAVIS_PULL_REQUEST_SLUG
+- sudo openssl aes-256-cbc -K $encrypted_key_01 -iv $encrypted_iv_01 -in .travis/id_rsa.enc -out ~/.ssh/id_rsa -d
 - bash ./autocheck.sh queue $TEST_IP
 script:
 - whoami
