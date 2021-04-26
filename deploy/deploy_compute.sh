@@ -102,5 +102,4 @@ if [ -z $auto ]; then
      fi
     done
 else
-   echo "Warning: you choose not to restart the compute nodes now. Please restart them before using cloudland"
-   break
+   echo "It's Automactic testing Warning: you choose not to restart the compute nodes now. Please restart them before using cloudland"
