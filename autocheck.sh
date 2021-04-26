@@ -33,6 +33,7 @@ checkpr(){
   sudo ./build_rpm.sh $VERSION $RELEASE
   echo "Deploy cloudland"
   cd /opt/cloudland/deploy/
+  echo "autocheck:$AUTO" >> /tmp/deploy.log
   ./deploy.sh $AUTO
   if [ $? -ne 0 ]
   then
@@ -96,7 +97,7 @@ pend(){
 # check status
 if [ ! -n "$1" ]||[ "$1" == "pull_request" ]
 then
-  checkpr $2 $3
+  checkpr $2 $3 $4
 elif [ "$1" == "test" ]
 then
   checktest $2
