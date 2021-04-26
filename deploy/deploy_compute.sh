@@ -14,7 +14,7 @@ fi
 begin=$1
 end=$2
 auto=$3
-echo "deploy_compute: $auto" >> /root/deploy.log
+echo "deploy_compute: $auto" >> /tmp/deploy.log
 # set cland root dir
 cland_root_dir=/opt/cloudland
 

@@ -106,10 +106,10 @@ let end=length-1
 if [ $end -lt 0 ]; then
     ansible-playbook service.yml --tags start_cloudland
 elif [$# -lt 1]; then
-    echo "not auto" >> /root/deploy.log
+    echo "not auto" >> /tmp/deploy.log
     ./deploy_compute.sh 0 $end
 else
-    echo "it's auto" >> /root/deploy.log
+    echo "it's auto" >> /tmp/deploy.log
     ./deploy_compute.sh 0 $end $AUTO
 fi
 
