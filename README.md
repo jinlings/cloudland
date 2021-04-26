@@ -18,9 +18,19 @@ Cloudland's main distinguishing features are:
 To support ultra-large scale, the hypervisors are organized into a tree hierarchy, the agents (scia are launched on demand)   
 
 ![](https://raw.githubusercontent.com/wiki/IBM/cloudland/images/tree.svg?sanitize=true)
-## Install
 
-There are two purposes of installing Cloudland
+For more information, see the [Introduction.md](https://github.com/jinlings/cloudland/blob/master/doc/Introduction.md)
+
+## Installation
+
+Support three ways to install cloudland
+
+1. Run a script to install from all-in-one node and a quick experience with cloudland
+   - Refer to [Deployment Guide](https://github.com/jinlings/cloudland/blob/master/doc/Deployment.md) to get more details
+2. Install cloudland with rpm package
+   - Refer to [Installation](https://github.com/jinlings/cloudland/blob/master/doc/Installation.md) to get more details
+3. Build source code and install cloudland from end to end
+   - Refer to [Build](https://github.com/jinlings/cloudland/blob/master/doc/Build.md) and [Installation](https://github.com/jinlings/cloudland/blob/master/doc/Installation.md) to get more informations
 
 ### For development
 Development environment can be installed from an all-in-one node and then extended to multiple nodes of hypervisors.
@@ -28,7 +38,15 @@ Development environment can be installed from an all-in-one node and then extend
 ### For production
 Production environment can be self-incubated from a development environment -- the new control plane VMs with high availability are launched from the development environment and they take over the management of the cluster and turn it to production environment.
 
-Refer to [deployment guide](http://github.com/IBM/cloudland/wiki/Deployment) for more details
+[ To Get Started](http://github.com/IBM/cloudland/wiki/Deployment) from here
+
+### User Guide
+
+For more usage, refer to [User Manual](https://github.com/jinlings/cloudland/blob/master/doc/Manual.md)
+
+### Reporting Issues
+
+If you encounter any problem with this package, please open a issue tracker to us
 
 ## Contributing
 
@@ -39,3 +57,5 @@ Refer to [CONTRIBUTING.md](https://github.com/IBM/cloudland/wiki/contribution)
 Apache License 2.0, see [LICENSE](https://github.com/IBM/cloudland/blob/master/LICENSE).
 
 Visit [doc](https://github.com/IBM/cloudland/tree/master/doc) for full documentation and guide.
+
+

@@ -62,16 +62,12 @@ ip=$(echo $controller | jq -r .ip)
 cat > $hosts <<EOF
 [imgrepo]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [cland]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [web]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [database]
 $hname ansible_host=$ip ansible_ssh_private_key_file=$cland_ssh_dir/cland.key
-
 [hyper]
 EOF
 
@@ -94,8 +90,8 @@ if [ ! -e "/opt/cloudland/web/clui/conf/config.toml" ]; then
             echo
       fi
 else
-    new_conf="no"
-    db_passwd=$(grep 'user=postgres' /opt/cloudland/web/clui/conf/config.toml | awk '{print $6}' | awk -F '=' '{print $2}')
+        new_conf="no"
+        db_passwd=$(grep 'user=postgres' /opt/cloudland/web/clui/conf/config.toml | awk '{print $6}' | awk -F '=' '{print $2}')
 fi
 
 cd $cland_root_dir/deploy
