@@ -102,6 +102,5 @@ while true; do
         cat <<EOF
 N
 EOF
-break
     fi
 done
