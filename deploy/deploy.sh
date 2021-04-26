@@ -109,9 +109,8 @@ if [ $end -lt 0 ]; then
 elif [$# -lt 1]; then
     echo "not auto" >> /tmp/deploy.log
     ./deploy_compute.sh 0 $end
-else
+  else
     echo "it's auto,$auto" >> /tmp/deploy.log
-   
     ./deploy_compute.sh 0 $end $auto
 fi
 

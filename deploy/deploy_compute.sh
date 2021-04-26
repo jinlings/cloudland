@@ -6,7 +6,7 @@ if [ $user != "cland" ]; then
     exit -1
 fi
 
-if [ $# -ne 2 -o $2 -lt $1 ]; then
+if [ $# -lt 2 -o $2 -lt $1 ]; then
     echo "deploy_compute.sh <begin> <end>"
     exit -1
 fi
