@@ -1,5 +1,6 @@
 #!/bin/bash
 
+auto=$1
 user=`whoami`
 if [ $user != "cland" ]; then
     echo "Use user 'cland' to deploy CloudLand."
@@ -109,8 +110,9 @@ elif [$# -lt 1]; then
     echo "not auto" >> /tmp/deploy.log
     ./deploy_compute.sh 0 $end
 else
-    echo "it's auto" >> /tmp/deploy.log
-    ./deploy_compute.sh 0 $end $AUTO
+    echo "it's auto,$auto" >> /tmp/deploy.log
+   
+    ./deploy_compute.sh 0 $end $auto
 fi
 
 echo "Done."
