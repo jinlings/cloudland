@@ -1,5 +1,6 @@
 #!/bin/bash
 
+auto=$1
 user=`whoami`
 if [ $user != "cland" ]; then
     echo "Use user 'cland' to deploy CloudLand."
@@ -105,8 +106,12 @@ length=$(echo $compute | jq length)
 let end=length-1
 if [ $end -lt 0 ]; then
     ansible-playbook service.yml --tags start_cloudland
-else
+elif [$# -lt 1]; then
+    echo "not auto" >> /tmp/deploy.log
     ./deploy_compute.sh 0 $end
+  else
+    echo "it's auto,$auto" >> /tmp/deploy.log
+    ./deploy_compute.sh 0 $end $auto
 fi
 
 echo "Done."

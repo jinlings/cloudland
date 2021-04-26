@@ -306,7 +306,6 @@
   tags: [sysctl]
 
 - name: Bridge the external network
-  script: bridge_ext.sh 
-  when: bridge_external = 'true'
+  script: bridge_ext.sh
+  when: virt_type != 'zvm'
   tags: [bridge_ext]
-  tags: [sysctl]
