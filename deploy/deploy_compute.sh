@@ -98,7 +98,9 @@ while true; do
         echo "Warning: you choose not to restart the compute nodes now. Please restart them before using cloudland"
         break
     else 
-        echo "You must input Y or N"
+        for (i=0; i++;i<=5){
+            echo "You must input Y or N"
+        }
         cat <<EOF
 N
 EOF
