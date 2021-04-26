@@ -99,7 +99,7 @@ while true; do
         break
     else 
         echo "You must input Y or N"
-        cat <<EOF
+        echo <<EOF
 N
 EOF
 break
