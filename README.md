@@ -41,7 +41,7 @@ If you encounter any problem with this package, please open an issue tracker to 
 
 ## Contributing
 
-Refer to [CONTRIBUTING.md](https://github.com/IBM/cloudland/wiki/contribution)
+Refer to [CONTRIBUTING.md](https://github.com/jinlings/cloudland/blob/master/doc/contribution.md)
 
 ## License
 
