@@ -94,7 +94,7 @@ After you create a gateway, you can choose a instance from the drop down menu an
 
 ## Click the **Create** button to generate the registry
 
-- Go to the directory (/opt/cloudland/cache/image/ocp/[**version**]/[**virtType**]) to check if the files are downloaded successfully or not.
+- Go to the directory (/opt/cloudland/cache/image/ocp/${version}/${virt_type}) to check if the files are downloaded successfully or not.
 
 ## Delete or update the registry information in Registry Tab.
 
