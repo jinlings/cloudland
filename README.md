@@ -28,14 +28,14 @@ Support two ways to install cloudland
 2. Build source code and install cloudland from end to end
    - Refer to [Build](https://github.com/jinlings/cloudland/blob/master/doc/Build.md) and [Installation](https://github.com/jinlings/cloudland/blob/master/doc/Installation.md) to get more informations
 
-### User Guide
+## User Guide
 
 - Launch Virtual Machine
 - Create Openshift Cluster
 
 For more usage, refer to [User Manual](https://github.com/jinlings/cloudland/blob/master/doc/Manual.md)
 
-### Reporting Issues
+## Reporting Issues
 
 If you encounter any problem with this package, please open an [issue](https://github.com/IBM/cloudland/issues) tracker to us
 
