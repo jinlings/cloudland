@@ -37,7 +37,7 @@ For more usage, refer to [User Manual](https://github.com/jinlings/cloudland/blo
 
 ### Reporting Issues
 
-If you encounter any problem with this package, please open an [issue](https://github.com/IBM/cloudland/issues)tracker to us
+If you encounter any problem with this package, please open an [issue](https://github.com/IBM/cloudland/issues) tracker to us
 
 ## Contributing
 
