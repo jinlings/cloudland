@@ -30,6 +30,9 @@ Support two ways to install cloudland
 
 ### User Guide
 
+- Launch Virtual Machine
+- Create Openshift Cluster
+
 For more usage, refer to [User Manual](https://github.com/jinlings/cloudland/blob/master/doc/Manual.md)
 
 ### Reporting Issues
